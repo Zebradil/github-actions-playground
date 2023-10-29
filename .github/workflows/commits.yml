@@ -1,0 +1,32 @@
+# In this workflow we test GitHub Actions behavior when a commit is pushed to a branch.
+
+name: Commits
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check current commit
+        run: |
+          git log -1
+      - name: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty --message "Commit"
+          git push
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check current commit
+        run: |
+          git log -1
