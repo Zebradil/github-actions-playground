@@ -14,14 +14,14 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Check current commit
         run: |
           git log -1
       - name: Commit changes
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@github.com"
           git commit --allow-empty --message "Commit"
           git push
   checkout:
@@ -29,7 +29,7 @@ jobs:
     needs: commit
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Check current commit
         run: |
           git log -1
