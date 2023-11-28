@@ -1,0 +1,40 @@
+name: build
+
+on: {}
+#   push:
+#     branches-ignore:
+#     - 'refs/tags/*'
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+        include:
+        - os: windows-latest
+          inspect: dir target\\release
+        - os: macos-latest
+          inspect: ls -l target/release
+
+    steps:
+    - name: Install latest stable
+      if: matrix.os == 'macos-latest'
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+    - uses: actions/checkout@v1
+    - name: Cache target directory
+      uses: actions/cache@v1
+      with:
+        path: target
+        key: ${{ runner.OS }}-target-${{ github.ref }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.OS }}-target-${{ github.ref }}-
+          ${{ runner.OS }}-target-master-
+          ${{ runner.OS }}-target-
+    - name: Build
+      run: cargo build --release
+    - name: Inspect
+      run: ${{ matrix.inspect }}
