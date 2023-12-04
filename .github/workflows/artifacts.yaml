@@ -1,0 +1,31 @@
+---
+name: Test artifacts upload and download
+
+on: [push]
+
+jobs:
+  upload:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+      - run: mkdir foo && echo "${{ matrix.os }}" > foo/bar.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: named-artifact
+          path: foo/bar.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          path: foo/bar.txt
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: named-artifact
+      - run: find
+      - run: find -exec cat {} \;
+      - uses: actions/download-artifact@v3
+      - run: find
+      - run: find -exec cat {} \;
