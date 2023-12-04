@@ -19,6 +19,7 @@ jobs:
         with:
           path: foo/bar.txt
   download:
+    needs: upload
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
