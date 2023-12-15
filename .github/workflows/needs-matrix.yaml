@@ -7,26 +7,23 @@ on:
       - main
 
 jobs:
-  matrix:
+  check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        value: [1, 2, 3]
     outputs:
-      needed: ${{ steps.check.outputs.needed }}
+      one: "true"
+      two: "false"
+      three: "true"
     steps:
-      - name: Check value
-        id: check
+      - name: Noop
         run: |
-          echo "Hello ${{ matrix.value }}"
-          if [[ "${{ matrix.value }}" = "2" ]]; then
-            echo "::set-output name=needed::false"
-          else
-            echo "::set-output name=needed::true"
-          fi
+          echo Hella
   needs:
     runs-on: ubuntu-latest
-    needs: matrix
+    needs: check
+    strategy:
+      matrix:
+        stage: [one, two, three]
+    if: needs.check.outputs[matrix.stage] == 'true'
     steps:
       - name: Dump needs context
         env:
