@@ -10,6 +10,16 @@ on:
   pull_request:
 
 jobs:
+  multiline-expression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test multiline expression
+        run: |
+          echo ${{
+            github.ref_name == github.event.repository.default_branch
+            && 'Powerful'
+            || 'Powerless'
+          }}
   print:
     runs-on: ubuntu-latest
     steps:
