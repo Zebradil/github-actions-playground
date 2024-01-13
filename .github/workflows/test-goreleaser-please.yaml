@@ -25,6 +25,7 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     permissions:
+      contents: write
       packages: write
     steps:
       - name: Checkout
