@@ -25,7 +25,7 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     steps:
-      - uses: goreleaser/goreleaser-action@v2
+      - uses: goreleaser/goreleaser-action@v5
         with:
           version: ${{ needs.release-please.outputs.version }}
           args: release --rm-dist
