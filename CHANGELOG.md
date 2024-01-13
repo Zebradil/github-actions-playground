@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/Zebradil/github-actions-playground/compare/v0.1.5...v0.1.6) (2024-01-13)
+
+
+### Bug Fixes
+
+* **ci:** add Dockerfile for GoReleaser ([8e22479](https://github.com/Zebradil/github-actions-playground/commit/8e22479141e991e688f557dcea500b25fad8cac6))
+
 ## [0.1.5](https://github.com/Zebradil/github-actions-playground/compare/v0.1.4...v0.1.5) (2024-01-13)
 
 
