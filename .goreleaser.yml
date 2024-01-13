@@ -1,0 +1,52 @@
+# Make sure to check the documentation at https://goreleaser.com
+---
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - binary: ghap
+    env:
+      - CGO_ENABLED=0
+    targets:
+      - linux_amd64
+      - linux_arm64
+checksum:
+  name_template: "checksums.txt"
+dockers:
+  - goos: linux
+    goarch: amd64
+    image_templates:
+      - ghcr.io/zebradil/github-actions-playground:{{ .Tag }}-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}.{{ .Minor }}-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:latest-linux-amd64
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/amd64
+  - goos: linux
+    goarch: arm64
+    image_templates:
+      - ghcr.io/zebradil/github-actions-playground:{{ .Tag }}-linux-arm64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}-linux-arm64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}.{{ .Minor }}-linux-arm64
+      - ghcr.io/zebradil/github-actions-playground:latest-linux-arm64
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/arm64
+docker_manifests:
+  - name_template: ghcr.io/zebradil/github-actions-playground:{{ .Tag }}
+    image_templates:
+      - ghcr.io/zebradil/github-actions-playground:{{ .Tag }}-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Tag }}-linux-arm64
+  - name_template: ghcr.io/zebradil/github-actions-playground:{{ .Major }}
+    image_templates:
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}-linux-arm64
+  - name_template: ghcr.io/zebradil/github-actions-playground:{{ .Major }}.{{ .Minor }}
+    image_templates:
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}.{{ .Minor }}-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:{{ .Major }}.{{ .Minor }}-linux-arm64
+  - name_template: ghcr.io/zebradil/github-actions-playground:latest
+    image_templates:
+      - ghcr.io/zebradil/github-actions-playground:latest-linux-amd64
+      - ghcr.io/zebradil/github-actions-playground:latest-linux-arm64
