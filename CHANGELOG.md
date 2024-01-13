@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/Zebradil/github-actions-playground/compare/v0.1.0...v0.1.1) (2024-01-13)
+
+
+### Bug Fixes
+
+* **ci:** update goreleaser action ([d73c6a9](https://github.com/Zebradil/github-actions-playground/commit/d73c6a91f4e8bb551e91aeb4180fd3cf15dc7ed8))
+
 ## [0.1.0](https://github.com/Zebradil/github-actions-playground/compare/v0.0.1...v0.1.0) (2024-01-13)
 
 
