@@ -12,6 +12,8 @@ builds:
       - linux_arm64
 checksum:
   name_template: "checksums.txt"
+signs:
+  - artifacts: checksum
 dockers:
   - goos: linux
     goarch: amd64
