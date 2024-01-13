@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Zebradil/github-actions-playground/compare/v0.2.1...v0.3.0) (2024-01-13)
+
+
+### Features
+
+* sign checksum with GoReleaser ([62d1871](https://github.com/Zebradil/github-actions-playground/commit/62d1871d2888422733bb108197e22898f3c65719))
+
 ## [0.2.1](https://github.com/Zebradil/github-actions-playground/compare/v0.2.0...v0.2.1) (2024-01-13)
 
 
