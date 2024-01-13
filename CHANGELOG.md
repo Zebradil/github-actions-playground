@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Zebradil/github-actions-playground/compare/v0.2.0...v0.2.1) (2024-01-13)
+
+
+### Bug Fixes
+
+* **ci:** add permission to edit releases ([e9d1a9d](https://github.com/Zebradil/github-actions-playground/commit/e9d1a9d2670ca24b31fa3c100c5e3244a2caddbe))
+
 ## [0.2.0](https://github.com/Zebradil/github-actions-playground/compare/v0.1.6...v0.2.0) (2024-01-13)
 
 
