@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/Zebradil/github-actions-playground/compare/v0.1.3...v0.1.4) (2024-01-13)
+
+
+### Bug Fixes
+
+* **ci:** checkout and setup Go before GoRelease ([b3f6762](https://github.com/Zebradil/github-actions-playground/commit/b3f6762aca5b4375b8efab1d79341f3b8d81b23e))
+
 ## [0.1.3](https://github.com/Zebradil/github-actions-playground/compare/v0.1.2...v0.1.3) (2024-01-13)
 
 
