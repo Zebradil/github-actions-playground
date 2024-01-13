@@ -27,5 +27,4 @@ jobs:
     steps:
       - uses: goreleaser/goreleaser-action@v5
         with:
-          version: ${{ needs.release-please.outputs.version }}
           args: release --rm-dist
