@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/Zebradil/github-actions-playground/compare/v0.1.2...v0.1.3) (2024-01-13)
+
+
+### Bug Fixes
+
+* **ci:** set GITHUB_TOKEN for goreleaser action ([78cdbb3](https://github.com/Zebradil/github-actions-playground/commit/78cdbb3963c26d070a25c54adf2fa9f310a3ca7d))
+
 ## [0.1.2](https://github.com/Zebradil/github-actions-playground/compare/v0.1.1...v0.1.2) (2024-01-13)
 
 
