@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/Zebradil/github-actions-playground/compare/v0.1.4...v0.1.5) (2024-01-13)
+
+
+### Bug Fixes
+
+* **ci:** checkout full history (with tags) ([65bac9a](https://github.com/Zebradil/github-actions-playground/commit/65bac9a1ec85315b84dec3e1da79162413074944))
+
 ## [0.1.4](https://github.com/Zebradil/github-actions-playground/compare/v0.1.3...v0.1.4) (2024-01-13)
 
 
