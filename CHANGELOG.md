@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/Zebradil/github-actions-playground/compare/v0.1.6...v0.2.0) (2024-01-13)
+
+
+### Features
+
+* **ci:** transition from global to in-job permissions ([9a33b26](https://github.com/Zebradil/github-actions-playground/commit/9a33b26766f15cfa21dc612feadb2d8ef04a6131))
+
 ## [0.1.6](https://github.com/Zebradil/github-actions-playground/compare/v0.1.5...v0.1.6) (2024-01-13)
 
 
