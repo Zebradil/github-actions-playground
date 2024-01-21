@@ -1,0 +1,42 @@
+---
+name: Test cache
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create PKGBUILDs
+        run: |
+          mkdir -p packages/foo-bar
+          touch packages/foo-bar/PKGBUILD
+          touch packages/foo-bar/pkgbuild_data.sh
+          mkdir -p packages/baz
+          touch packages/baz/PKGBUILD
+          touch packages/baz/pkgbuild_data.sh
+      - name: Lsit packages
+        run: |
+          find packages
+      - uses: actions/cache@v4
+        with:
+          path: |
+            packages/**
+            !packages/*/PKGBUILD
+            !packages/*/pkgbuild_data.sh
+          key: generate_pkgbuilds-latest-${{ github.run_id }}
+          restore-keys: generate_pkgbuilds-latest
+      - name: Debug cache
+        run: |
+          echo "Cache hit: ${{ steps.cache.outputs.cache-hit }}"
+          find packages
+      - name: Create additional assets
+        run: |
+          touch packages/foo-bar/README.md
+          touch packages/baz/README.md
+      - name: Lsit packages
+        run: |
+          find packages
