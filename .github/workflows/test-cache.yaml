@@ -18,7 +18,7 @@ jobs:
           mkdir -p packages/baz
           touch packages/baz/PKGBUILD
           touch packages/baz/pkgbuild_data.sh
-      - name: Lsit packages
+      - name: List packages
         run: |
           find packages
       - uses: actions/cache@v4
@@ -37,6 +37,6 @@ jobs:
         run: |
           touch packages/foo-bar/README.md
           touch packages/baz/README.md
-      - name: Lsit packages
+      - name: List packages
         run: |
           find packages
