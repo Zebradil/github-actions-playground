@@ -25,7 +25,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            packages/**
+            packages/*/*
             !packages/*/PKGBUILD
             !packages/*/pkgbuild_data.sh
           key: generate_pkgbuilds-latest-${{ github.run_id }}
