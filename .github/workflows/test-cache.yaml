@@ -21,7 +21,7 @@ jobs:
       - name: List packages
         run: |
           find packages
-          find packages -name pkgbuild_data.sh -exec echo {}\; cat {} \;
+          find packages -name pkgbuild_data.sh -exec echo {} \; -exec cat {} \;
       - uses: actions/cache@v4
         with:
           path: |
@@ -34,7 +34,7 @@ jobs:
         run: |
           echo "Cache hit: ${{ steps.cache.outputs.cache-hit }}"
           find packages
-          find packages -name pkgbuild_data.sh -exec echo {}\; cat {} \;
+          find packages -name pkgbuild_data.sh -exec echo {} \; -exec cat {} \;
       - name: Create additional assets
         run: |
           touch packages/foo-bar/README.md
