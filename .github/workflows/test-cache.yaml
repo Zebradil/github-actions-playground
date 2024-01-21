@@ -14,13 +14,14 @@ jobs:
         run: |
           mkdir -p packages/foo-bar
           touch packages/foo-bar/PKGBUILD
-          touch packages/foo-bar/pkgbuild_data.sh
+          date > packages/foo-bar/pkgbuild_data.sh
           mkdir -p packages/baz
           touch packages/baz/PKGBUILD
-          touch packages/baz/pkgbuild_data.sh
+          date > packages/baz/pkgbuild_data.sh
       - name: List packages
         run: |
           find packages
+          find packages -name pkgbuild_data.sh -exec echo {}; cat {} \;
       - uses: actions/cache@v4
         with:
           path: |
@@ -33,6 +34,7 @@ jobs:
         run: |
           echo "Cache hit: ${{ steps.cache.outputs.cache-hit }}"
           find packages
+          find packages -name pkgbuild_data.sh -exec echo {}; cat {} \;
       - name: Create additional assets
         run: |
           touch packages/foo-bar/README.md
