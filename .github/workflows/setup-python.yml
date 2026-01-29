@@ -1,9 +1,9 @@
-name: CI
+name: Setup Python 3.14 and Verify
 
 on: push
 
 jobs:
-  one:
+  setup-python:
     runs-on: ubuntu-latest
     steps:
       - name: Check the current Python version
