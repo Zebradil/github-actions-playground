@@ -42,3 +42,51 @@ jobs:
           ls -ln /etc/nixci/
           nix store info --store "$NIXCI_STORE"
           time nix build --no-link --print-out-paths --eval-store auto --store "$NIXCI_STORE" github:zebradil/kasha#packages.x86_64-linux.kasha
+
+  nix-ci:
+    runs-on: homelab
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: zebradil/kasha
+
+      # Until the pod exports NIX_CI_STORE itself.
+      - run: echo "NIX_CI_STORE=$NIXCI_STORE" >> "$GITHUB_ENV"
+
+      # Throwaway key: proves the push signs paths built in the remote store.
+      - id: key
+        run: |
+          nix key generate-secret --key-name nix-ci-test-1 > "$RUNNER_TEMP/test.sec"
+          {
+            echo "public=$(nix key convert-secret-to-public < "$RUNNER_TEMP/test.sec")"
+            echo "secret=$(cat "$RUNNER_TEMP/test.sec")"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: zebradil/nix-ci/.github/actions/setup-nix@wt/261125-235823-remote-store
+        with:
+          signing-key: ${{ steps.key.outputs.secret }}
+          extra-trusted-public-keys: ${{ steps.key.outputs.public }}
+
+      - name: attr-set
+        uses: zebradil/nix-ci/.github/actions/build@wt/261125-235823-remote-store
+        with:
+          attr: checks.x86_64-linux
+          cache-s3-url: file:///tmp/nix-ci-test-cache
+          kasha-manifest: false
+
+      - name: uncached-leaves
+        uses: zebradil/nix-ci/.github/actions/build@wt/261125-235823-remote-store
+        with:
+          attr: packages.x86_64-linux.kasha
+          strategy: uncached-leaves
+          cache-s3-url: file:///tmp/nix-ci-test-cache
+          kasha-manifest: false
+
+      - name: Pushed paths carry the test signature
+        run: |
+          n=$(ls /tmp/nix-ci-test-cache/*.narinfo | wc -l)
+          signed=$(grep -l '^Sig: nix-ci-test-1:' /tmp/nix-ci-test-cache/*.narinfo | wc -l)
+          echo "narinfos: $n, signed by the test key: $signed"
+          [ "$n" -gt 0 ] && [ "$n" -eq "$signed" ]
+          nix store ls --store "$NIX_CI_STORE" / >/dev/null 2>&1 || true
+          cat "${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf" | sed 's/github.com=.*/github.com=<redacted>/'
