@@ -57,9 +57,22 @@ jobs:
       # Throwaway key: proves the push signs paths built in the remote store.
       - id: key
         run: |
-          nix key generate-secret --key-name nix-ci-test-1 > "$RUNNER_TEMP/test.sec"
+          if command -v nix >/dev/null; then
+            nix key generate-secret --key-name nix-ci-test-1 > "$RUNNER_TEMP/test.sec"
+          else
+            # Hosted runners have no Nix before setup-nix: same format, seed then public key.
+            python3 -c "import cryptography" 2>/dev/null || pip install --quiet --user --break-system-packages cryptography
+            python3 - > "$RUNNER_TEMP/test.sec" <<'PY'
+          import base64
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          from cryptography.hazmat.primitives import serialization as s
+          k = Ed25519PrivateKey.generate()
+          raw = lambda o: o.private_bytes(s.Encoding.Raw, s.PrivateFormat.Raw, s.NoEncryption()) if o is k else o.public_bytes(s.Encoding.Raw, s.PublicFormat.Raw)
+          print("nix-ci-test-1:" + base64.b64encode(raw(k) + raw(k.public_key())).decode(), end="")
+          PY
+          fi
           {
-            echo "public=$(nix key convert-secret-to-public < "$RUNNER_TEMP/test.sec")"
+            echo "public=nix-ci-test-1:$(cut -d: -f2 "$RUNNER_TEMP/test.sec" | base64 -d | tail -c 32 | base64 -w0)"
             echo "secret=$(cat "$RUNNER_TEMP/test.sec")"
           } >> "$GITHUB_OUTPUT"
 
