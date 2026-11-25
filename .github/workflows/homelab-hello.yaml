@@ -1,0 +1,16 @@
+name: homelab hello
+
+on:
+  push:
+    branches:
+      - wt/*-homelab-hello
+
+jobs:
+  hello:
+    runs-on: homelab
+    steps:
+      - name: Show where the job runs
+        run: |
+          echo "runner: $RUNNER_NAME"
+          uname -a
+          id
