@@ -44,7 +44,11 @@ jobs:
           time nix build --no-link --print-out-paths --eval-store auto --store "$NIX_CI_STORE" github:zebradil/kasha#packages.x86_64-linux.kasha
 
   nix-ci:
-    runs-on: homelab
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [homelab, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -85,5 +89,5 @@ jobs:
           signed=$(grep -l '^Sig: nix-ci-test-1:' /tmp/nix-ci-test-cache/*.narinfo | wc -l)
           echo "narinfos: $n, signed by the test key: $signed"
           [ "$n" -gt 0 ] && [ "$n" -eq "$signed" ]
-          nix store ls --store "$NIX_CI_STORE" / >/dev/null 2>&1 || true
-          cat "${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf" | sed 's/github.com=.*/github.com=<redacted>/'
+          echo "NIX_USER_CONF_FILES=${NIX_USER_CONF_FILES:-}"
+          nix config show experimental-features
