@@ -1,0 +1,47 @@
+name: homelab buildkit
+
+# Builds an image on daddy's rootless BuildKit from a homelab runner pod and
+# checks that build containers cannot reach the LAN, the tailnet or daddy.
+on:
+  push:
+    branches: ['wt/*-homelab-buildkit']
+
+jobs:
+  build:
+    runs-on: homelab
+    steps:
+      - name: Connect builder
+        run: |
+          docker buildx version
+          docker buildx create --use --name daddy --driver remote \
+            --driver-opt cacert=/etc/buildkit/ca.crt,cert=/etc/buildkit/tls.crt,key=/etc/buildkit/tls.key \
+            "$BUILDKIT_HOST"
+          docker buildx inspect --bootstrap
+
+      - name: Write Dockerfile
+        run: |
+          mkdir ctx
+          cat >ctx/Dockerfile <<'EOF'
+          FROM alpine:3.22
+          # Cacheable: the second build must reuse it.
+          RUN apk add --no-cache curl
+          # Below the build arg, so the probes run on every build.
+          ARG STAMP
+          # Each probe must fail; reaching one fails the build.
+          RUN for u in http://192.168.0.1 http://192.168.0.101:5000 https://192.168.0.101 \
+                http://100.115.144.94 http://10.0.2.2:1234 http://127.0.0.1:1234; do \
+                start=$(date +%s); \
+                if curl -sS -k -m 5 -o /dev/null "$u"; then echo "REACHED $u"; exit 1; fi; \
+                echo "blocked $u after $(( $(date +%s) - start )) s"; \
+              done
+          RUN curl -sS -m 10 -o /dev/null https://github.com && echo "internet ok ($STAMP)"
+          EOF
+
+      - name: Build (first)
+        run: time docker buildx build --progress=plain --build-arg STAMP="$GITHUB_RUN_ID-1" ctx
+
+      - name: Build (second, expect cached layers)
+        run: |
+          set -o pipefail
+          time docker buildx build --progress=plain --build-arg STAMP="$GITHUB_RUN_ID-2" ctx 2>&1 | tee build.log
+          if ! grep -q CACHED build.log; then echo "no cache hits"; exit 1; fi
