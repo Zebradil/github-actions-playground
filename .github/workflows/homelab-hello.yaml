@@ -18,6 +18,16 @@ jobs:
           if command -v sudo; then echo "sudo present"; exit 1; fi
           if [ -e /var/run/secrets/kubernetes.io/serviceaccount/token ]; then echo "service account token mounted"; exit 1; fi
 
+      - name: Network policy
+        run: |
+          curl -sS -m 10 -o /dev/null https://kasha.lan.zebradil.dev/nix-cache-info
+          echo "kasha reachable"
+          for target in http://192.168.0.101:5000/nix-cache-info https://10.43.0.1/; do
+            start=$(date +%s)
+            if curl -sSk -m 10 -o /dev/null "$target"; then echo "$target reachable"; exit 1; fi
+            echo "$target blocked after $(( $(date +%s) - start ))s"
+          done
+
       - uses: actions/checkout@v6
 
       - name: Tool versions
