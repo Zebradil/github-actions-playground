@@ -21,7 +21,7 @@ jobs:
       - name: Tool versions
         run: |
           nix --version
-          nix-fast-build --version
+          command -v nix-fast-build
           docker buildx version
           git --version
 
