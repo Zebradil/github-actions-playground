@@ -40,8 +40,8 @@ jobs:
       - name: Build on daddy as nixci
         run: |
           ls -ln /etc/nixci/
-          nix store info --store "$NIXCI_STORE"
-          time nix build --no-link --print-out-paths --eval-store auto --store "$NIXCI_STORE" github:zebradil/kasha#packages.x86_64-linux.kasha
+          nix store info --store "$NIX_CI_STORE"
+          time nix build --no-link --print-out-paths --eval-store auto --store "$NIX_CI_STORE" github:zebradil/kasha#packages.x86_64-linux.kasha
 
   nix-ci:
     runs-on: homelab
@@ -49,9 +49,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: zebradil/kasha
-
-      # Until the pod exports NIX_CI_STORE itself.
-      - run: echo "NIX_CI_STORE=$NIXCI_STORE" >> "$GITHUB_ENV"
 
       # Throwaway key: proves the push signs paths built in the remote store.
       - id: key
