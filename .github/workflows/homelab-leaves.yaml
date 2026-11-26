@@ -59,3 +59,20 @@ jobs:
           echo "leaves built: $(grep -c . "$RUNNER_TEMP/leaves.txt" || true)"
           echo "paths published: $(wc -l < "$PATHS_FILE") (.drv: $(grep -c '\.drv$' "$PATHS_FILE" || true))"
           du -sh /tmp/nix-ci-leaves-cache
+
+      - name: Plan diagnostics
+        run: |
+          drv=$(nix path-info --derivation .#checks.x86_64-linux.d1-build)
+          plan=$(nix-store --realise --dry-run "$drv" 2>&1)
+          grep -E 'will be (built|fetched)' <<<"$plan"
+          leaf=$(sed -n '/will be built/,/will be fetched/p' <<<"$plan" | grep -m1 -oE '/nix/store/[^ ]+-libgpg-error[^ ]*\.drv' || sed -n '/will be built/,/will be fetched/p' <<<"$plan" | grep -m1 -oE '/nix/store/[^ ]+\.drv')
+          echo "sample leaf: $leaf"
+          for out in $(nix-store -q --outputs "$leaf"); do
+            h=$(basename "$out" | cut -c1-32)
+            echo "$out cache.nixos.org=$(curl -s -o /dev/null -w '%{http_code}' https://cache.nixos.org/$h.narinfo) znix=$(curl -s -o /dev/null -w '%{http_code}' https://znix.zebradil.dev/$h.narinfo)"
+            nix path-info --store https://cache.nixos.org "$out" 2>&1 | head -2
+          done
+          nix --version
+          nix config show substitute
+          nix config show trusted-substituters
+          echo "$plan" | grep -vE '^\s+/nix/store' | head -20
