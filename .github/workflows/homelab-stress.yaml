@@ -1,0 +1,85 @@
+name: homelab stress
+
+# Load generator for the homelab runner pool. Edit stress.json on a
+# wt/*-homelab-stress branch and push: `jobs` parallel homelab jobs, each
+#   eval: evaluates a znix NixOS check in the pod and realises it on daddy (warm,
+#         like nix-fast-build on a PR),
+#   cold: builds a per-job variant of nixpkgs `package` on daddy (forced rebuild),
+#   both: eval, then cold.
+on:
+  push:
+    branches:
+      - wt/*-homelab-stress
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.plan.outputs.jobs }}
+      mode: ${{ steps.plan.outputs.mode }}
+      package: ${{ steps.plan.outputs.package }}
+      znix: ${{ steps.plan.outputs.znix }}
+      nixpkgs: ${{ steps.plan.outputs.nixpkgs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One znix and nixpkgs revision for all jobs, so they share derivations.
+          znix=$(gh api repos/Zebradil/znix/commits/main --jq .sha)
+          nixpkgs=$(gh api "repos/Zebradil/znix/contents/flake.lock?ref=$znix" -H 'Accept: application/vnd.github.raw' |
+            jq -r '.nodes[.nodes.root.inputs.nixpkgs].locked.rev')
+          {
+            echo "jobs=$(jq -c '[range(1; .jobs + 1)]' stress.json)"
+            echo "mode=$(jq -r .mode stress.json)"
+            echo "package=$(jq -r .package stress.json)"
+            echo "znix=$znix"
+            echo "nixpkgs=$nixpkgs"
+          } >> "$GITHUB_OUTPUT"
+
+  load:
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        i: ${{ fromJSON(needs.plan.outputs.jobs) }}
+    runs-on: homelab
+    timeout-minutes: 60
+    env:
+      I: ${{ matrix.i }}
+      MODE: ${{ needs.plan.outputs.mode }}
+      PACKAGE: ${{ needs.plan.outputs.package }}
+      ZNIX: ${{ needs.plan.outputs.znix }}
+      NIXPKGS: ${{ needs.plan.outputs.nixpkgs }}
+      # 50 pods fetching flakes would exhaust GitHub's anonymous rate limit.
+      NIX_CONFIG: |
+        access-tokens = github.com=${{ github.token }}
+        always-allow-substitutes = true
+    steps:
+      - name: Load
+        run: |
+          set -euo pipefail
+          echo "pod $HOSTNAME, mode $MODE"
+          if [[ $MODE == eval || $MODE == both ]]; then
+            targets=(d1-build d2-build d3-build daddy-build junior-build tuxedo-build zebradil-tuxedo-home-build)
+            t=${targets[$(((I - 1) % ${#targets[@]}))]}
+            start=$SECONDS
+            nix build --no-link --eval-store auto --store "$NIX_CI_STORE" \
+              "github:Zebradil/znix/$ZNIX#checks.x86_64-linux.$t"
+            echo "eval $t: $((SECONDS - start)) s" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ $MODE == cold || $MODE == both ]]; then
+            start=$SECONDS
+            nix build --no-link --impure --eval-store auto --store "$NIX_CI_STORE" --expr "
+              (builtins.getFlake \"github:NixOS/nixpkgs/$NIXPKGS\").legacyPackages.x86_64-linux.$PACKAGE.overrideAttrs {
+                STRESS = \"$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$I\";
+              }"
+            echo "cold $PACKAGE: $((SECONDS - start)) s" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Pod memory peak
+        if: always()
+        run: |
+          peak=$(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo 0)
+          echo "pod $HOSTNAME memory peak $((peak / 1024 / 1024)) MiB" | tee -a "$GITHUB_STEP_SUMMARY"
