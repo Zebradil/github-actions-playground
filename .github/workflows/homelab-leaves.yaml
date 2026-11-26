@@ -1,0 +1,61 @@
+name: homelab leaves
+
+on:
+  push:
+    branches:
+      - wt/*-homelab-hello
+
+jobs:
+  leaves:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [homelab, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: zebradil/znix
+
+      - id: key
+        run: |
+          if command -v nix >/dev/null; then
+            nix key generate-secret --key-name nix-ci-test-1 > "$RUNNER_TEMP/test.sec"
+          else
+            # Hosted runners have no Nix before setup-nix: same format, seed then public key.
+            python3 -c "import cryptography" 2>/dev/null || pip install --quiet --user --break-system-packages cryptography
+            python3 - > "$RUNNER_TEMP/test.sec" <<'PY'
+          import base64
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          from cryptography.hazmat.primitives import serialization as s
+          k = Ed25519PrivateKey.generate()
+          raw = lambda o: o.private_bytes(s.Encoding.Raw, s.PrivateFormat.Raw, s.NoEncryption()) if o is k else o.public_bytes(s.Encoding.Raw, s.PublicFormat.Raw)
+          print("nix-ci-test-1:" + base64.b64encode(raw(k) + raw(k.public_key())).decode(), end="")
+          PY
+          fi
+          {
+            echo "public=nix-ci-test-1:$(cut -d: -f2 "$RUNNER_TEMP/test.sec" | base64 -d | tail -c 32 | base64 -w0)"
+            echo "secret=$(cat "$RUNNER_TEMP/test.sec")"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: zebradil/nix-ci/.github/actions/setup-nix@wt/261126-020522-leaves-push-set
+        with:
+          extra-substituters: https://znix.zebradil.dev
+          extra-trusted-public-keys: znix.zebradil.dev:nvr0OQFRddbHGopQbyLbLXQnntFBDKp23tqQq+msppw= ${{ steps.key.outputs.public }}
+          signing-key: ${{ steps.key.outputs.secret }}
+
+      - id: build
+        uses: zebradil/nix-ci/.github/actions/build@wt/261126-020522-leaves-push-set
+        with:
+          attr: checks.x86_64-linux.d1-build
+          strategy: uncached-leaves
+          cache-s3-url: file:///tmp/nix-ci-leaves-cache
+          kasha-manifest: false
+
+      - name: What would be published
+        env:
+          PATHS_FILE: ${{ steps.build.outputs.paths-file }}
+        run: |
+          echo "leaves built: $(grep -c . "$RUNNER_TEMP/leaves.txt" || true)"
+          echo "paths published: $(wc -l < "$PATHS_FILE") (.drv: $(grep -c '\.drv$' "$PATHS_FILE" || true))"
+          du -sh /tmp/nix-ci-leaves-cache
