@@ -1,5 +1,1 @@
-{
-  "jobs": 50,
-  "mode": "cold",
-  "package": "git"
-}
+{"jobs":3,"mode":"eval"}
